@@ -7,6 +7,9 @@ A lightweight, cross-platform command-line tool for extracting watermarks from i
 - ⚡ **Lightning-Fast Processing**: Optimized for speed to handle common image formats (JPG, PNG, etc.) efficiently.
 - 🎯 **Intuitive Usage**: Two simple operation modes tailored to each OS’s user habits.
 
+<img width="2474" height="1546" alt="cd64892e-ae2a-4f02-87de-c67259a61896" src="https://github.com/user-attachments/assets/fbbc93cc-7505-4559-902b-65ce345dee3b" />
+
+
 ## Installation
 1. Go to the [Releases](https://github.com/huiguipingdan/watermark_extractor/releases) page of this repository.
 2. Download the corresponding package for your operating system:
