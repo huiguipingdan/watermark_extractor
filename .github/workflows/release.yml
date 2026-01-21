@@ -1,40 +1,57 @@
-name: Release
+name: Release Tool
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch: # 支持手动触发
 
 jobs:
+  # --- 编译 Mac 通用版 ---
   build-mac:
-    name: Build Universal Mac Binary
-    runs-on: macos-latest # 使用 Mac 环境进行编译
+    name: Build Mac Universal
+    runs-on: macos-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # 升级到 v4
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          # 同时安装 Intel 和 Apple Silicon 的目标平台
           targets: x86_64-apple-darwin, aarch64-apple-darwin
 
-      - name: Build for Intel (x86_64)
-        run: cargo build --release --target x86_64-apple-darwin
-
-      - name: Build for Apple Silicon (aarch64)
-        run: cargo build --release --target aarch64-apple-darwin
-
-      - name: Create Universal Binary
+      - name: Build
         run: |
-          mkdir -p target/universal-macos
-          # 使用 lipo 工具将两个二进制文件合并为一个
-          lipo -create \
-            target/x86_64-apple-darwin/release/watermark_extractor \
-            target/aarch64-apple-darwin/release/watermark_extractor \
-            -output target/universal-macos/watermark_extractor
+          cargo build --release --target x86_64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
+          # 合并为通用二进制文件
+          lipo -create target/x86_64-apple-darwin/release/watermark_extractor \
+                       target/aarch64-apple-darwin/release/watermark_extractor \
+               -output watermark_extractor_mac_universal
 
-      - name: Upload Universal Artifact
-        uses: actions/upload-artifact@v3
+      - name: Upload Mac Artifact
+        uses: actions/upload-artifact@v4 # 必须升级到 v4
         with:
-          name: watermark_extractor_macos_universal
-          path: target/universal-macos/watermark_extractor
+          name: mac-binary
+          path: watermark_extractor_mac_universal
+
+  # --- 编译 Windows 版 ---
+  build-win:
+    name: Build Windows GNU
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # 升级到 v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable-x86_64-pc-windows-gnu
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4 # 必须升级到 v4
+        with:
+          name: win-binary
+          path: target/release/watermark_extractor.exe
