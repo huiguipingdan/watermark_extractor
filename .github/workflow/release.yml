@@ -1,0 +1,40 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-mac:
+    name: Build Universal Mac Binary
+    runs-on: macos-latest # 使用 Mac 环境进行编译
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # 同时安装 Intel 和 Apple Silicon 的目标平台
+          targets: x86_64-apple-darwin, aarch64-apple-darwin
+
+      - name: Build for Intel (x86_64)
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Build for Apple Silicon (aarch64)
+        run: cargo build --release --target aarch64-apple-darwin
+
+      - name: Create Universal Binary
+        run: |
+          mkdir -p target/universal-macos
+          # 使用 lipo 工具将两个二进制文件合并为一个
+          lipo -create \
+            target/x86_64-apple-darwin/release/watermark_extractor \
+            target/aarch64-apple-darwin/release/watermark_extractor \
+            -output target/universal-macos/watermark_extractor
+
+      - name: Upload Universal Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: watermark_extractor_macos_universal
+          path: target/universal-macos/watermark_extractor
